@@ -216,12 +216,39 @@ if st.button("Get Diagnosis"):
     if report['best_fit']:
         best = report['best_fit']
         confidence = best['score']  # Store confidence for later use
-        symptom_count = len(symptoms)  # Count symptoms
         
-   #     st.subheader("Diagnosis")
-        st.markdown(f"#### {confidence}% chance this is caused by {best['diagnosis']}")
-       #     st.caption("🎯 Feature: Recommendations Over Exact Answers")
-   #     st.caption("⚡ Feature: Uncertainty (Confidence Level)")
+        # Count symptoms based on input mode
+        if input_mode == "🤖 Natural Language (AI)":
+            symptom_count = sum(1 for f in extracted_facts if hasattr(f, 'as_dict') and 'symptom' in str(f))
+        else:
+            symptom_count = len(symptoms)
+        
+        # === NEW: Natural Language Explanation ===
+        try:
+            from explanation_generator import generate_explanation
+            
+            with st.spinner("🤖 Generating friendly explanation..."):
+                friendly_explanation = generate_explanation(report)
+            
+            # Show natural language explanation
+            st.markdown("### 💬 Here's What I Found")
+            st.markdown(friendly_explanation)
+            
+            # Expandable technical details
+            with st.expander("🔍 View Technical Details"):
+                st.markdown(f"**Primary Diagnosis:** {best['diagnosis']}")
+                st.markdown(f"**Confidence Level:** {confidence}%")
+                st.markdown(f"**Action Type:** {best['action']}")
+                
+                if report.get('explanations'):
+                    st.markdown("**Reasoning:**")
+                    for explanation in report['explanations']:
+                        st.write(f"• {explanation}")
+        
+        except Exception as e:
+            # Fallback to original technical display
+            st.markdown(f"#### {confidence}% chance this is caused by {best['diagnosis']}")
+        
         st.markdown("---")
         # Show action type badge
    #     action = best['action']
@@ -233,29 +260,19 @@ if st.button("Get Diagnosis"):
    #         st.warning(f"🔧👨‍🔧 **Action Required:** {action}")
         
             
-        # Show recommendation with proper formatting
+        # Detailed recommendation (kept for critical warnings)
         if '⚠️' in best['recommendation'] or '🔥' in best['recommendation']:
             st.error(best['recommendation'])
-        else:
-            st.info(best['recommendation'])
-        # Alternative diagnoses - only show when confidence is not high (< 80%) or multiple symptoms selected
-        if report['alternatives'] and (confidence < 80):
-            st.markdown("---")
-            st.markdown(f"#### 🔄 Alternative Possibilities")
-   #         st.write("**🔄 Alternative Possibilities:**")
-   #         st.caption("🔄 Feature: Providing Alternative Solutions")
-            for i, alt in enumerate(report['alternatives'], 1):
-                st.markdown(f"**{i}. {alt['diagnosis']}** ({alt['score']}%)")
-               # st.write(f"**Action:** {alt['action']}")
-                st.write(f"{alt['recommendation']}")
         
-        # Explanation - only show when confidence is not high (< 80%)
-            st.markdown("---")
-   #         st.caption("📖 Feature: Explainability")
-            st.markdown(f"#### 📖 Why this recommendation?")
-   #         st.write("**💡 Why this recommendation?**")
-            for explanation in report['explanations']:
-                st.write(f"✓ {explanation}")
+        # Alternative diagnoses - only show when confidence is not high (< 80%)
+        if report['alternatives'] and confidence < 80:
+            with st.expander("🔄 See Other Possible Causes"):
+                for i, alt in enumerate(report['alternatives'], 1):
+                    st.markdown(f"**{i}. {alt['diagnosis']}** ({alt['score']}% confidence)")
+                    st.caption(f"Action: {alt['action']}")
+                    st.write(alt['recommendation'])
+                    if i < len(report['alternatives']):
+                        st.markdown("---")
         
         st.markdown("---")
         st.caption("⚠️ Always unplug appliances before repair. Consult a professional for electrical issues.")
