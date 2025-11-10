@@ -1,0 +1,2 @@
+streamlit
+git+https://github.com/nilp0inter/experta.git@develop
