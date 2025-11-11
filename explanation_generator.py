@@ -125,6 +125,121 @@ Remember: Be friendly, clear, and practical. Help them understand what's wrong a
         return explanation
 
 
+def explain_alternative(alternative_diagnosis, confidence, recommendation):
+    """
+    Generate natural language explanation for an alternative diagnosis.
+    Converts bullet-point recommendations into friendly, conversational explanations.
+    
+    Args:
+        alternative_diagnosis: Name of the alternative diagnosis
+        confidence: Confidence percentage
+        recommendation: Technical recommendation text
+    
+    Returns:
+        String with friendly explanation for this alternative
+    """
+    try:
+        generator = ExplanationGenerator()
+        
+        system_prompt = """You are a helpful appliance repair technician explaining an alternative diagnosis to a homeowner.
+
+Your job is to:
+1. Explain why this could also be the problem (in simple terms)
+2. Translate technical recommendations into friendly, actionable advice
+3. Be concise but clear (2-3 sentences)
+4. Use conversational language
+
+RULES:
+- DO NOT add information not in the recommendation
+- DO make it sound natural and friendly
+- DO keep it brief and practical
+- If it mentions safety concerns, emphasize them
+- If it's DIY, make that clear; if professional, say so"""
+
+        user_prompt = f"""Alternative Diagnosis: {alternative_diagnosis}
+Confidence: {confidence}%
+Technical Recommendation: {recommendation}
+
+Explain this alternative possibility in friendly, simple language (2-3 sentences):"""
+
+        response = generator.client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
+        
+        return response.choices[0].message.content.strip()
+        
+    except Exception as e:
+        print(f"⚠️ LLM explanation for alternative failed: {e}")
+        # Fallback to original recommendation
+        return recommendation
+
+
+def explain_why_recommendation(diagnosis, confidence, explanations_list):
+    """
+    Generate natural language explanation for "Why this recommendation?" section.
+    Converts technical expert system explanations (bullet points) into friendly narrative.
+    
+    Args:
+        diagnosis: The primary diagnosis name
+        confidence: Confidence percentage
+        explanations_list: List of technical explanation strings from expert system
+    
+    Returns:
+        String with friendly explanation of the reasoning
+    """
+    try:
+        generator = ExplanationGenerator()
+        
+        # Build the technical reasoning
+        reasoning_bullets = "\n".join([f"- {exp}" for exp in explanations_list])
+        
+        system_prompt = """You are a knowledgeable appliance repair expert explaining your diagnostic reasoning to a homeowner.
+
+Your job is to translate technical expert system reasoning into natural, friendly language that explains WHY you reached this diagnosis.
+
+RULES:
+1. Convert the bullet points into a smooth, natural paragraph (2-3 sentences)
+2. Explain how the symptoms connect to the diagnosis
+3. Use simple language and helpful analogies if appropriate
+4. Be conversational but informative
+5. DO NOT add new information not in the reasoning
+6. DO NOT repeat the diagnosis name or confidence (they already see it above)
+7. Focus on explaining the "why" - the logical connection between symptoms and diagnosis
+
+Keep it concise, friendly, and educational."""
+
+        user_prompt = f"""Diagnosis: {diagnosis}
+Confidence: {confidence}%
+
+Technical Reasoning (from expert system):
+{reasoning_bullets}
+
+Explain WHY these symptoms point to this diagnosis in friendly, natural language (2-3 sentences):"""
+
+        response = generator.client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        return response.choices[0].message.content.strip()
+        
+    except Exception as e:
+        print(f"⚠️ LLM explanation for 'why recommendation' failed: {e}")
+        # Fallback to bullet points
+        return "Based on the following factors:\n" + "\n".join([f"✓ {exp}" for exp in explanations_list])
+
+
 def generate_explanation(report):
     """
     Convenience function to generate friendly explanation from report

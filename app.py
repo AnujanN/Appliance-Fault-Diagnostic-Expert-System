@@ -298,13 +298,14 @@ if st.button("Get Diagnosis"):
 
    #         st.caption("🔄 Feature: Providing Alternative Solutions")
 
+            
             for i, alt in enumerate(report['alternatives'], 1):
 
                 st.markdown(f"**{i}. {alt['diagnosis']}** ({alt['score']}%)")
 
                # st.write(f"**Action:** {alt['action']}")
 
-                st.write(f"{alt['recommendation']}")
+                st.info(alt['recommendation'])
 
        
 
@@ -318,9 +319,31 @@ if st.button("Get Diagnosis"):
 
    #         st.write("**💡 Why this recommendation?**")
 
-            for explanation in report['explanations']:
-
-                st.write(f"✓ {explanation}")
+            # Use LLM to generate natural language explanation
+            try:
+                from explanation_generator import explain_why_recommendation
+                
+                with st.spinner("🤖 Generating explanation..."):
+                    friendly_why = explain_why_recommendation(
+                        diagnosis=best['diagnosis'],
+                        confidence=confidence,
+                        explanations_list=report['explanations']
+                    )
+                
+                # Show LLM-generated friendly explanation
+                st.info(friendly_why)
+                
+                # Show technical explanations in expander for transparency
+                with st.expander("🔍 View technical reasoning (expert system logic)"):
+                    st.caption("These are the exact rules the expert system used:")
+                    for explanation in report['explanations']:
+                        st.write(f"✓ {explanation}")
+                        
+            except Exception as e:
+                print(f"⚠️ LLM explanation failed: {e}")
+                # Fallback to bullet points
+                for explanation in report['explanations']:
+                    st.write(f"✓ {explanation}")
 
        
 
