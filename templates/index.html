@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appliance Diagnostic System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e6ed;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #5a6c7d;
+        }
+
+        .mode-btn:hover {
+            border-color: #3498db;
+            background: #f8fafc;
+        }
+
+        .mode-btn.active {
+            border-color: #3498db;
+            background: #e3f2fd;
+            color: #2980b9;
+            font-weight: 500;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-size: 14px;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+
+        .diagnosis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .diagnosis-title {
+            font-size: 22px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .confidence-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .confidence-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .recommendation-box {
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .explanation-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .alternatives {
+            margin-top: 20px;
+        }
+
+        .alternative-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid #95a5a6;
+        }
+
+        .alternative-header {
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .extracted-facts {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .extracted-facts-title {
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .fact-item {
+            padding: 5px 0;
+            color: #388e3c;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 Appliance Diagnostic System</h1>
+            <p class="subtitle">Expert system for appliance fault diagnosis</p>
+        </header>
+
+        <div class="card">
+            <div class="section-title">Input Method</div>
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="switchMode('natural')">
+                    🤖 Natural Language (AI)
+                </button>
+                <button class="mode-btn" onclick="switchMode('manual')">
+                    📋 Manual Selection
+                </button>
+            </div>
+
+            <!-- Natural Language Input -->
+            <div id="natural-input" class="input-section">
+                <div class="input-group">
+                    <label for="appliance-hint">Appliance Type (Optional)</label>
+                    <select id="appliance-hint">
+                        <option value="auto">Auto-detect</option>
+                        <option value="Washing Machine">Washing Machine</option>
+                        <option value="Fan">Fan</option>
+                        <option value="Power Generator">Power Generator</option>
+                        <option value="Kitchen Grinder">Kitchen Grinder</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="problem-text">Describe Your Problem</label>
+                    <textarea id="problem-text" placeholder="Example: My washing machine won't drain and it's making a grinding noise..."></textarea>
+                </div>
+            </div>
+
+            <!-- Manual Selection Input -->
+            <div id="manual-input" class="input-section hidden">
+                <div class="input-group">
+                    <label for="appliance-select">Appliance Type</label>
+                    <select id="appliance-select" onchange="updateSymptoms()">
+                        <option value="">-- Select Appliance --</option>
+                        <option value="Washing Machine">Washing Machine</option>
+                        <option value="Fan">Fan</option>
+                        <option value="Power Generator">Power Generator</option>
+                        <option value="Kitchen Grinder">Kitchen Grinder</option>
+                    </select>
+                </div>
+
+                <div id="symptoms-section" class="input-group hidden">
+                    <label>Symptoms</label>
+                    <div id="symptoms-list" class="checkbox-group"></div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="diagnose()">Get Diagnosis</button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden"></div>
+    </div>
+
+    <footer>
+        <p>⚠️ Always unplug appliances before repair. Consult a professional for electrical issues.</p>
+    </footer>
+
+    <script>
+        let currentMode = 'natural';
+
+        const symptoms = {
+            'Washing Machine': ['Wont Start', 'Wont Drain', 'Not Spinning', 'Leaking Water', 'Loud Noise'],
+            'Fan': ['Wont Start', 'Wobbles', 'Slow Speed', 'Noisy Operation', 'Overheating'],
+            'Power Generator': ['Wont Start', 'Low Power Output', 'Runs But No Electricity', 'Excessive Smoke', 'Overheating', 'Backfiring'],
+            'Kitchen Grinder': ['Wont Start', 'Weak Grinding', 'Excessive Vibration', 'Burning Smell', 'Jamming', 'Leaking']
+        };
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update button states
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Toggle input sections
+            if (mode === 'natural') {
+                document.getElementById('natural-input').classList.remove('hidden');
+                document.getElementById('manual-input').classList.add('hidden');
+            } else {
+                document.getElementById('natural-input').classList.add('hidden');
+                document.getElementById('manual-input').classList.remove('hidden');
+            }
+
+            // Clear results
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('results').classList.add('hidden');
+        }
+
+        function updateSymptoms() {
+            const appliance = document.getElementById('appliance-select').value;
+            const symptomsSection = document.getElementById('symptoms-section');
+            const symptomsList = document.getElementById('symptoms-list');
+
+            if (!appliance) {
+                symptomsSection.classList.add('hidden');
+                return;
+            }
+
+            symptomsSection.classList.remove('hidden');
+            symptomsList.innerHTML = '';
+
+            symptoms[appliance].forEach(symptom => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="symptom-${symptom}" value="${symptom}">
+                    <label for="symptom-${symptom}">${symptom}</label>
+                `;
+                symptomsList.appendChild(div);
+            });
+        }
+
+        async function diagnose() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">🔄 Analyzing...</div>';
+            resultsDiv.classList.remove('hidden');
+
+            let requestData = { input_mode: currentMode };
+
+            if (currentMode === 'natural') {
+                const text = document.getElementById('problem-text').value;
+                const hint = document.getElementById('appliance-hint').value;
+                
+                if (!text.trim()) {
+                    showError('Please describe your problem');
+                    return;
+                }
+
+                requestData.text = text;
+                requestData.appliance_hint = hint;
+            } else {
+                const appliance = document.getElementById('appliance-select').value;
+                const selectedSymptoms = Array.from(document.querySelectorAll('#symptoms-list input:checked'))
+                    .map(cb => cb.value);
+
+                if (!appliance) {
+                    showError('Please select an appliance');
+                    return;
+                }
+                if (selectedSymptoms.length === 0) {
+                    showError('Please select at least one symptom');
+                    return;
+                }
+
+                requestData.appliance = appliance;
+                requestData.symptoms = selectedSymptoms;
+                requestData.observations = {};
+            }
+
+            try {
+                const response = await fetch('/diagnose', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError(data.error || 'An error occurred');
+                    return;
+                }
+
+                displayResults(data);
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            let confidenceClass = 'confidence-low';
+            if (data.confidence >= 70) confidenceClass = 'confidence-high';
+            else if (data.confidence >= 40) confidenceClass = 'confidence-medium';
+
+            let html = '<div class="result-card">';
+            
+            // Show extracted facts for natural language mode
+            if (data.extracted_facts) {
+                html += '<div class="extracted-facts">';
+                html += '<div class="extracted-facts-title">✅ AI Understood:</div>';
+                data.extracted_facts.forEach(fact => {
+                    html += `<div class="fact-item">• ${fact}</div>`;
+                });
+                html += '</div>';
+            }
+
+            // Diagnosis header
+            html += '<div class="diagnosis-header">';
+            html += `<div class="diagnosis-title">${data.diagnosis}</div>`;
+            html += `<div class="confidence-badge ${confidenceClass}">${data.confidence}% Confidence</div>`;
+            html += '</div>';
+
+            // Recommendation
+            html += '<div class="recommendation-box">';
+            html += '<strong>📋 Recommended Action:</strong><br>';
+            html += data.recommendation;
+            html += '</div>';
+
+            // LLM Explanation
+            if (data.friendly_explanation) {
+                html += '<div class="section-title">💡 Why This Recommendation?</div>';
+                html += `<div class="explanation-box">${data.friendly_explanation}</div>`;
+            }
+
+            // Alternatives
+            if (data.alternatives && data.alternatives.length > 0 && data.confidence < 80) {
+                html += '<div class="alternatives">';
+                html += '<div class="section-title">🔄 Alternative Possibilities</div>';
+                data.alternatives.forEach((alt, index) => {
+                    html += '<div class="alternative-item">';
+                    html += `<div class="alternative-header">${index + 1}. ${alt.diagnosis} (${alt.score}%)</div>`;
+                    html += `<div>${alt.recommendation}</div>`;
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        function showError(message) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+            resultsDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
