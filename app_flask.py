@@ -45,8 +45,23 @@ def diagnose():
                 for fact in extracted_facts:
                     engine.declare(fact)
                 
-                # Store extracted facts for display
-                extracted_facts_display = [str(f) for f in extracted_facts]
+                # Store extracted facts for display in readable format
+                extracted_facts_display = []
+                for fact in extracted_facts:
+                    fact_dict = fact.as_dict() if hasattr(fact, 'as_dict') else {}
+                    if 'appliance' in fact_dict:
+                        extracted_facts_display.append(f"Appliance: {fact_dict['appliance']}")
+                    elif 'symptom' in fact_dict:
+                        extracted_facts_display.append(f"Symptom: {fact_dict['symptom']}")
+                    elif 'noise_type' in fact_dict:
+                        extracted_facts_display.append(f"Noise Type: {fact_dict['noise_type']}")
+                    elif 'power' in fact_dict:
+                        extracted_facts_display.append(f"Power: {fact_dict['power']}")
+                    elif 'fuel' in fact_dict:
+                        extracted_facts_display.append(f"Fuel: {fact_dict['fuel']}")
+                    else:
+                        # Fallback to string representation
+                        extracted_facts_display.append(str(fact))
             except Exception as e:
                 return jsonify({'error': f'AI extraction failed: {str(e)}'}), 500
         else:
