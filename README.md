@@ -1,131 +1,110 @@
-# Appliance Fault Diagnostic Expert System
+# Household Appliance Fault Diagnostic — Expert System
 
-A "Virtual Technician" expert system built with Python, Experta, and Streamlit that diagnoses faults in household appliances.
+Brief, practical expert system for diagnosing common household appliance faults. It combines a rule-based inference engine (Experta) with an LLM-based natural-language fact extractor and an LLM-powered explanation generator for improved explainability.
 
-## Features
+## Current Features
 
-This system implements all 6 core requirements:
+- Natural Language Input (NLU): Describe the problem in plain English (for example, "My washing machine won't drain and makes a grinding noise"). The system's LLM extractor converts natural text to structured facts (appliance, symptoms, observations).
+- Manual Input Mode: Classic checkboxes and structured prompts for users who prefer precise selection.
+- Rule-Based Expert Engine:
+   - Forward-chaining inference implemented with Experta.
+   - A knowledge base of ~67 realistic diagnostic rules (including combination rules for multi-symptom cases).
+   - Confidence scoring and uncertainty handling that takes symptom counts into account.
+- Explainability:
+   - The engine produces structured, traceable reasoning and alternative hypotheses.
+   - A focused LLM rewrites the technical reasoning for the primary diagnosis into a user-friendly "Why this recommendation?" explanation — the symbolic explanation remains visible and auditable.
+- Recommendations and Action Types:
+   - Combined output that includes the recommended steps and an action-type badge (DIY vs Professional).
+   - Even when "Professional" is recommended, the system provides explicit technical details so the user and technician know what to expect.
+- Handling Incomplete Information:
+   - Graceful degradation: the system still provides useful troubleshooting tips when only partial details are available.
+- Logging & Feedback Scaffolds:
+   - Diagnosis and feedback logs are recorded (runtime JSON files) to support future training or analysis.
+- Frontends:
+   - Streamlit UI (original interactive demo).
+   - Minimal professional Flask frontend (light theme) with consistent, readable styling for diagnosis, explanation, and recommendations.
+- LLM Integration:
+   - Primary fact extractor uses Groq (configurable via `GROQ_API_KEY`).
+   - A simple rule-based extractor is used as a fallback if the LLM is unavailable.
 
-1. **Asking Questions**: Interactive UI with dynamic, appliance-specific questions
-2. **Handling Incomplete Information**: Provides safe default advice when information is limited
-3. **Providing Alternative Solutions**: Offers best-fit diagnosis plus 2-3 alternatives
-4. **Recommendations Over Exact Answers**: Suggests actionable steps (DIY vs. Professional)
-5. **Uncertainty (Confidence Level)**: Uses a points-based scoring system for diagnoses
-6. **Explainability**: Provides clear reasoning for all recommendations
+## Files of interest
 
-## Supported Appliances
+- `app.py` — Streamlit frontend.
+- `app_flask.py` — Flask frontend (light, professional theme).
+- `engine.py` — Experta-based diagnostic engine and rules.
+- `llm_extractor.py` — Groq LLM-based fact extractor (text → Facts).
+- `explanation_generator.py` — Focused LLM explanation generator for "Why this recommendation?" (rewrites expert reasoning to plain English).
+- `test_llm.py` — Quick test harness for the LLM extractor.
+- `diagnosis_logs.json` — Created at runtime; stores diagnosis cases.
+- `feedback_data.json` — Created at runtime; stores user feedback for each case.
+- `VIDEO_VOICEOVER_TELEPROMPTER.md` — Teleprompter-friendly spoken script for a 2-minute demo video.
 
-- **Washing Machine**: Diagnoses issues like won't start, won't drain, loud noises, leaking, etc.
-- **Fan**: Handles problems like won't start, wobbling, slow speed, overheating, etc.
-- **Power Generator**: Identifies fuel issues, power output problems, overheating, backfiring, etc.
-- **Kitchen Grinder**: Diagnoses motor issues, weak grinding, vibration, burning smell, etc.
+## Quick Setup (Windows)
 
-## Installation
+1. Create & activate a virtual environment (recommended):
 
-1. Clone or download this project
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
 2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
 
-## Running the Application
+```powershell
+pip install -r requirements.txt
+```
 
-```bash
+3. Environment variables:
+
+Create a `.env` file in the project root or set environment variables in PowerShell. Example `.env`:
+
+```
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+Or set it in PowerShell for the current session:
+
+```powershell
+$env:GROQ_API_KEY = "your_groq_api_key_here"
+```
+
+## Running the project
+
+- Streamlit UI:
+
+```powershell
 streamlit run app.py
 ```
 
-The application will open in your default web browser at `http://localhost:8501`
+- Flask UI:
 
-## How It Works
-
-### Architecture
-
-- **engine.py**: Contains the Experta-based rule engine with 50+ diagnostic rules
-- **app.py**: Streamlit UI that guides users through the diagnostic process
-- **requirements.txt**: Python dependencies
-
-### Diagnostic Process
-
-1. **Triage**: User selects the appliance type
-2. **Symptom Collection**: Dynamic questions based on appliance type
-3. **Rule Execution**: Expert system evaluates symptoms using rule-based inference
-4. **Scoring**: Each rule adds points to potential diagnoses
-5. **Decision**: System selects best-fit diagnosis and alternatives based on scores
-6. **Recommendations**: Provides actionable advice with DIY vs. Professional guidance
-
-### Scoring System
-
-- Rules fire based on symptoms and observations
-- Each rule adds/subtracts points to diagnoses
-- Higher scores = higher confidence
-- Best fit is the highest-scoring diagnosis
-- Alternatives are the next 2-3 highest scores
-
-## Example Usage
-
-### Example 1: Washing Machine Won't Drain
-
-**Input:**
-- Appliance: Washing Machine
-- Symptoms: Won't Drain, Loud Noise (Gurgling)
-
-**Output:**
-- **Best-Fit**: Clogged Filter (70 pts)
-- **Alternatives**: Blocked Drain Hose (35 pts), Failed Pump (10 pts)
-- **Recommendation**: DIY - Clean or replace the filter
-- **Explanation**: "Gurgling noise strongly suggests a drainage blockage"
-
-### Example 2: Fan Won't Start
-
-**Input:**
-- Appliance: Fan
-- Symptoms: Won't Start
-- Power: Checked
-
-**Output:**
-- **Best-Fit**: Blown Thermal Fuse (40 pts)
-- **Alternatives**: Broken Switch (25 pts), Failed Motor (20 pts)
-- **Recommendation**: Professional - Requires electrical expertise
-- **Explanation**: "With power confirmed, a blown thermal fuse or failed motor is most likely"
-
-## Project Structure
-
-```
-Expert System Assignment/
-├── app.py              # Streamlit UI application
-├── engine.py           # Experta rule engine
-├── requirements.txt    # Python dependencies
-└── README.md          # This file
+```powershell
+python app_flask.py
 ```
 
-## Key Technologies
+- Test the LLM extractor:
 
-- **Python 3.x**: Core programming language
-- **Experta**: Rule-based expert system framework
-- **Streamlit**: Web UI framework for interactive applications
+```powershell
+python test_llm.py
+```
 
-## Safety Notice
+## Notes & Best Practices
 
-This expert system provides diagnostic guidance only. Always:
-- Unplug appliances before inspection or repair
-- Stop using appliances if you smell burning or see smoke
-- Consult professionals for electrical or gas-related issues
-- Prioritize safety over cost savings
+- LLM usage is scoped and focused: the extractor converts free text into structured facts; the explanation LLM only rewrites the primary diagnosis' reasoning to be user-friendly and does not overwrite the symbolic trace.
+- Keep `diagnosis_logs.json` and `feedback_data.json` for future calibration and training.
+- Add `.env` and `__pycache__/` to `.gitignore` and do not commit secrets.
+- Safety: always include safety warnings in UI and recommendations (e.g., unplug appliances before working on them; call a professional for electrical/fuel hazards).
 
-## Future Enhancements
+## Extensibility Ideas
 
-Potential improvements:
-- Add more appliances (refrigerator, microwave, dryer, etc.)
-- Implement machine learning to improve scoring over time
-- Add image upload for visual diagnosis
-- Include video tutorials for common DIY fixes
-- Multi-language support
-- Mobile-responsive design optimization
+- Collect feedback and use it to train a symptom classifier (e.g., TF-IDF + RandomForest or a light neural model).
+- Train an NER model (spaCy) once enough labeled data is available to improve extractor accuracy.
+- Implement a confidence calibrator that adjusts displayed percentages using historical feedback.
 
-## License
+## Want help automating setup or docs?
 
-This project is created for educational purposes.
+I can:
+- Add a quick-start PowerShell script that creates the venv and installs dependencies.
+- Add a README section with example inputs → extractor output → engine reasoning to demonstrate the neuro-symbolic flow.
+- Provide instructions and code changes for switching LLM providers (Groq ↔ OpenAI).
 
-## Author
-
-Created as part of an Expert System Assignment demonstrating rule-based AI and knowledge engineering principles.
